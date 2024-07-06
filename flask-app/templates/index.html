@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pension Calculator</title>
+    <style>
+        .data {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .data th, .data td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .data th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>UCLA Pension Calculator</h1>
+    <form method="post">
+        <label for="current_age">Current Age:</label>
+        <input type="number" id="current_age" name="current_age" required><br><br>
+        
+        <label for="start_date_year">Employment Start Year:</label>
+        <input type="number" id="start_date_year" name="start_date_year" required><br><br>
+        
+        <label for="hapc">Highest Average Salary (HAPC):</label>
+        <input type="number" step="0.01" id="hapc" name="hapc" required><br><br>
+        
+        <input type="submit" value="Calculate">
+    </form>
+    
+    {% if tables %}
+    <h2>Pension Calculation Results</h2>
+    <div>{{ tables[0]|safe }}</div>
+    {% endif %}
+
+    {% if graph_html %}
+    <h2>Pension Calculation Graph</h2>
+    <div>{{ graph_html|safe }}</div>
+    {% endif %}
+</body>
+</html>
