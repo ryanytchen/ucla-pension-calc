@@ -21,6 +21,10 @@
             background-color: #4CAF50;
             color: white;
         }
+        .disclaimer {
+            font-size: 0.9em;
+            color: #888;
+        }
     </style>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
@@ -41,17 +45,23 @@
                 <input type="number" step="0.01" id="hapc" name="hapc" class="form-control" required>
             </div>
             <button type="submit" class="btn btn-primary">Calculate</button>
+            <button type="button" class="btn btn-secondary" id="clearButton">Clear</button>
         </form>
 
-        <h2>Pension Calculation Results</h2>
-        <div id="results" class="table-responsive"></div>
-        <div id="pensionGraph" class="mt-4"></div>
+        <h2 id="resultsHeader" class="d-none">Pension Calculation Results</h2>
+        <div id="results" class="table-responsive d-none"></div>
+        <div id="pensionGraph" class="mt-4 d-none"></div>
+        <p class="disclaimer mt-4">This calculator provides rough estimates. Please double-check the calculations when you are planning for retirement.</p>
     </div>
 
     <script>
         document.getElementById('pensionForm').addEventListener('submit', function(event) {
             event.preventDefault();
             calculatePension();
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            clearForm();
         });
 
         function calculatePension() {
@@ -106,10 +116,10 @@
                 results.push({
                     retirementAge: age,
                     retirementYear: retirementYear,
-                    serviceYears: serviceYears,
-                    benefitPercentage: benefitPercentage * 100,
                     monthlyPension: monthlyPension,
-                    yearlyPension: yearlyPension
+                    yearlyPension: yearlyPension,
+                    serviceYears: serviceYears,
+                    benefitPercentage: benefitPercentage * 100
                 });
             });
 
@@ -128,7 +138,7 @@
                 const thead = document.createElement('thead');
                 const headerRow = document.createElement('tr');
 
-                ['Retirement Age', 'Retirement Year', 'Service Years', 'Benefit Percentage (%)', 'Monthly Pension ($)', 'Yearly Pension ($)'].forEach(header => {
+                ['Retirement Age', 'Retirement Year', 'Monthly Pension ($)', 'Yearly Pension ($)', 'Service Years', 'Benefit Percentage (%)'].forEach(header => {
                     const th = document.createElement('th');
                     th.textContent = header;
                     headerRow.appendChild(th);
@@ -145,10 +155,10 @@
                     const formattedResult = {
                         retirementAge: result.retirementAge.toFixed(0),
                         retirementYear: result.retirementYear,
-                        serviceYears: result.serviceYears.toFixed(0),
-                        benefitPercentage: result.benefitPercentage.toFixed(2) + '%',
                         monthlyPension: result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
-                        yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
+                        yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
+                        serviceYears: result.serviceYears.toFixed(0),
+                        benefitPercentage: result.benefitPercentage.toFixed(2) + '%'
                     };
 
                     Object.values(formattedResult).forEach(value => {
@@ -162,6 +172,9 @@
 
                 table.appendChild(tbody);
                 resultsDiv.appendChild(table);
+                document.getElementById('resultsHeader').classList.remove('d-none');
+                resultsDiv.classList.remove('d-none');
+                document.getElementById('pensionGraph').classList.remove('d-none');
             } else {
                 resultsDiv.textContent = 'No results to display.';
             }
@@ -180,10 +193,10 @@
                 text: results.map(result => `
                     Retirement Age: ${result.retirementAge}<br>
                     Retirement Year: ${result.retirementYear}<br>
-                    Service Years: ${result.serviceYears}<br>
-                    Benefit Percentage: ${result.benefitPercentage.toFixed(2)}%<br>
                     Monthly Pension: ${result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
-                    Yearly Pension: ${result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}
+                    Yearly Pension: ${result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
+                    Service Years: ${result.serviceYears}<br>
+                    Benefit Percentage: ${result.benefitPercentage.toFixed(2)}%
                 `),
                 hoverinfo: 'text'
             };
@@ -205,6 +218,13 @@
             };
 
             Plotly.newPlot('pensionGraph', [trace], layout, config);
+        }
+
+        function clearForm() {
+            document.getElementById('pensionForm').reset();
+            document.getElementById('resultsHeader').classList.add('d-none');
+            document.getElementById('results').classList.add('d-none');
+            document.getElementById('pensionGraph').classList.add('d-none');
         }
     </script>
 </body>
