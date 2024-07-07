@@ -192,12 +192,16 @@
                 title: 'UCLA Pension Based on Retirement Age',
                 xaxis: { title: 'Retirement Age' },
                 yaxis: { title: 'Pension Amount ($)' },
-                hovermode: 'closest'
+                hovermode: 'closest',
+                dragmode: false // Disable dragging on the graph
             };
 
             const config = {
                 displayModeBar: false, // Hide the mode bar
-                responsive: true
+                responsive: true,
+                scrollZoom: false, // Disable scroll to zoom
+                doubleClick: false, // Disable double-click zoom
+                showTips: false // Disable additional tips
             };
 
             Plotly.newPlot('pensionGraph', [trace], layout, config);
