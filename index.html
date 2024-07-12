@@ -230,8 +230,7 @@
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: 'Yearly Pension',
-                text: results.map(result => `cd ..
-                
+                text: results.map(result => `
                     Retirement Age: ${result.retirementAge}<br>
                     Retirement Year: ${result.retirementYear}<br>
                     Monthly Pension: ${result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
