@@ -47,7 +47,25 @@
             </div>
             <div class="form-group">
                 <label for="startDateYear">Employment Start Year:</label>
-                <input type="number" id="startDateYear" name="startDateYear" class="form-control" required>
+                <input type="number" id="startDategh repo clone trandrew/ucla-pension-calcYear" name="startDateYear" class="form-control" required>
+            </div>
+            <div id="startMonthContainer" class="form-group" style="display:none;">
+                <label for="startMonth">Employment Start Month:</label>
+                <select id="startMonth" name="startMonth" class="form-control">
+                    <option value="">Select Month</option>
+                    <option value="1">January</option>
+                    <option value="2">February</option>
+                    <option value="3">March</option>
+                    <option value="4">April</option>
+                    <option value="5">May</option>
+                    <option value="6">June</option>
+                    <option value="7">July</option>
+                    <option value="8">August</option>
+                    <option value="9">September</option>
+                    <option value="10">October</option>
+                    <option value="11">November</option>
+                    <option value="12">December</option>
+                </select>
             </div>
             <div class="form-group">
                 <label for="hapc">Highest Average Salary (HAPC):</label>
@@ -64,6 +82,17 @@
     </div>
 
     <script>
+        document.getElementById('startDateYear').addEventListener('input', function() {
+            var yearInput = this.value;
+            var startMonthContainer = document.getElementById('startMonthContainer');
+            
+            if (yearInput === '2013') {
+                startMonthContainer.style.display = 'block';
+            } else {
+                startMonthContainer.style.display = 'none';
+            }
+        });
+
         document.getElementById('pensionForm').addEventListener('submit', function(event) {
             event.preventDefault();
             calculatePension();
@@ -72,16 +101,18 @@
         document.getElementById('clearButton').addEventListener('click', function() {
             clearForm();
         });
+        
 
         function calculatePension() {
             const currentAge = parseInt(document.getElementById('currentAge').value);
             const startDateYear = parseInt(document.getElementById('startDateYear').value);
             const hapc = parseFloat(document.getElementById('hapc').value);
+            const startDateMonth = parseInt(document.getElementById('startMonth').value);
 
             const currentYear = new Date().getFullYear();
             let ageFactors;
 
-            if (startDateYear < 2013) {
+            if (startDateYear < 2013 || (startDateYear == 2013 && startDateMonth < 7)) {
                 ageFactors = {
                     50: 0.0110,
                     51: 0.0124,
