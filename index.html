@@ -47,7 +47,7 @@
             </div>
             <div class="form-group">
                 <label for="startDateYear">Employment Start Year:</label>
-                <input type="number" id="startDategh repo clone trandrew/ucla-pension-calcYear" name="startDateYear" class="form-control" required>
+                <input type="number" id="startDateYear" name="startDateYear" class="form-control" required>
             </div>
             <div id="startMonthContainer" class="form-group" style="display:none;">
                 <label for="startMonth">Employment Start Month:</label>
@@ -230,7 +230,8 @@
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: 'Yearly Pension',
-                text: results.map(result => `
+                text: results.map(result => `cd ..
+                
                     Retirement Age: ${result.retirementAge}<br>
                     Retirement Year: ${result.retirementYear}<br>
                     Monthly Pension: ${result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
