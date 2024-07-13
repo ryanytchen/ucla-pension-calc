@@ -101,7 +101,6 @@
         document.getElementById('clearButton').addEventListener('click', function() {
             clearForm();
         });
-        
 
         function calculatePension() {
             const currentAge = parseInt(document.getElementById('currentAge').value);
@@ -111,8 +110,10 @@
 
             const currentYear = new Date().getFullYear();
             let ageFactors;
+            let startAge;
 
-            if (startDateYear < 2013 || (startDateYear == 2013 && startDateMonth < 7)) {
+            if (startDateYear < 2013 || (startDateYear === 2013 && startDateMonth < 7)) {
+                startAge = 50;
                 ageFactors = {
                     50: 0.0110,
                     51: 0.0124,
@@ -127,6 +128,7 @@
                     60: 0.0250
                 };
             } else {
+                startAge = 55;
                 ageFactors = {
                     55: 0.0110,
                     56: 0.0124,
@@ -142,26 +144,30 @@
                 };
             }
 
-            const retirementAges = Object.keys(ageFactors).map(age => parseInt(age));
             const results = [];
 
-            retirementAges.forEach(age => {
+            for (let age = startAge; age <= 100; age++) {
+                const ageFactor = age <= 65 ? ageFactors[age] || 0.0250 : 0.0250;
                 const retirementYear = currentYear + (age - currentAge);
                 const serviceYears = retirementYear - startDateYear;
-                const ageFactor = ageFactors[age];
                 const benefitPercentage = serviceYears * ageFactor;
                 const yearlyPension = benefitPercentage * hapc;
-                const monthlyPension = yearlyPension / 12;
 
-                results.push({
-                    retirementAge: age,
-                    retirementYear: retirementYear,
-                    monthlyPension: monthlyPension,
-                    yearlyPension: yearlyPension,
-                    serviceYears: serviceYears,
-                    benefitPercentage: benefitPercentage * 100
-                });
-            });
+                if (yearlyPension <= hapc) {
+                    const monthlyPension = yearlyPension / 12;
+
+                    results.push({
+                        retirementAge: age,
+                        retirementYear: retirementYear,
+                        monthlyPension: monthlyPension,
+                        yearlyPension: yearlyPension,
+                        serviceYears: serviceYears,
+                        benefitPercentage: benefitPercentage * 100
+                    });
+                } else {
+                    break;
+                }
+            }
 
             displayResults(results);
             displayGraph(results);
