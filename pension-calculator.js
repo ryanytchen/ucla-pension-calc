@@ -103,6 +103,9 @@ function calculatePension() {
     }
 
     const results = [];
+    let previousMonthlyPension = null;
+    let previousLumpSum = null;
+    let previousBenefitPercentage = null;
 
     for (let age = startAge; age <= 100; age++) {
         const ageFactor = age <= 65 ? ageFactors[age] || 0.0250 : 0.0250;
@@ -115,25 +118,48 @@ function calculatePension() {
             const monthlyPension = yearlyPension / 12;
             const lumpSum = displayLumpSum ? monthlyPension * lumpSumMultipliers[age] : null;
 
+            let monthlyPensionChange = null;
+            let lumpSumChange = null;
+            let benefitPercentageChange = null;
+
+            if (previousMonthlyPension !== null) {
+                monthlyPensionChange = ((monthlyPension - previousMonthlyPension) / previousMonthlyPension) * 100;
+            }
+
+            if (previousLumpSum !== null && lumpSum !== null) {
+                lumpSumChange = ((lumpSum - previousLumpSum) / previousLumpSum) * 100;
+            }
+
+            if (previousBenefitPercentage !== null) {
+                benefitPercentageChange = ((benefitPercentage - previousBenefitPercentage) / previousBenefitPercentage) * 100;
+            }
+
             results.push({
                 retirementAge: age,
                 retirementYear: retirementYear,
                 monthlyPension: monthlyPension,
+                monthlyPensionChange: monthlyPensionChange,
                 yearlyPension: yearlyPension,
                 lumpSum: lumpSum,
+                lumpSumChange: lumpSumChange,
                 serviceYears: serviceYears,
-                benefitPercentage: benefitPercentage * 100
+                benefitPercentage: benefitPercentage * 100,
+                benefitPercentageChange: benefitPercentageChange
             });
+
+            previousMonthlyPension = monthlyPension;
+            previousLumpSum = lumpSum;
+            previousBenefitPercentage = benefitPercentage;
         } else {
             break;
         }
     }
 
-    displayResults(results, displayLumpSum);
+    displayResults(results, displayLumpSum, lumpSumMultipliers);
     displayGraph(results);
 }
 
-function displayResults(results, displayLumpSum) {
+function displayResults(results, displayLumpSum, lumpSumMultipliers) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
@@ -160,20 +186,20 @@ function displayResults(results, displayLumpSum) {
 
         const tbody = document.createElement('tbody');
 
-        results.forEach(result => {
+        results.forEach((result, index) => {
             const row = document.createElement('tr');
 
             const formattedResult = {
                 retirementAge: result.retirementAge.toFixed(0),
                 retirementYear: result.retirementYear,
-                monthlyPension: result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
+                monthlyPension: formatPension(result.monthlyPension, result.monthlyPensionChange),
                 yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
                 serviceYears: result.serviceYears.toFixed(0),
-                benefitPercentage: result.benefitPercentage.toFixed(2) + '%'
+                benefitPercentage: formatPercentage(result.benefitPercentage, result.benefitPercentageChange)
             };
 
             if (displayLumpSum) {
-                formattedResult.lumpSum = result.lumpSum.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+                formattedResult.lumpSum = formatPension(result.lumpSum, result.lumpSumChange, result.monthlyPension, lumpSumMultipliers[result.retirementAge], index);
             }
 
             // Order the values as per the new requirement
@@ -192,7 +218,7 @@ function displayResults(results, displayLumpSum) {
 
             orderedValues.forEach(value => {
                 const td = document.createElement('td');
-                td.textContent = value;
+                td.innerHTML = value;
                 row.appendChild(td);
             });
 
@@ -204,9 +230,36 @@ function displayResults(results, displayLumpSum) {
         document.getElementById('resultsHeader').classList.remove('d-none');
         resultsDiv.classList.remove('d-none');
         document.getElementById('pensionGraph').classList.remove('d-none');
+
+        // Initialize Bootstrap popovers
+        $('[data-toggle="popover"]').popover();
     } else {
         resultsDiv.textContent = 'No results to display.';
     }
+}
+
+function formatPension(value, change, monthlyPension = null, multiplier = null, index = null) {
+    const formattedValue = value.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+    const popoverContent = monthlyPension && multiplier ? `Calculation: ${monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })} x ${multiplier.toFixed(2)} = ${formattedValue}` : '';
+    const popoverAttributes = monthlyPension && multiplier ? `data-toggle="popover" data-trigger="hover" data-content="${popoverContent}"` : '';
+    if (change !== null) {
+        const formattedChange = change.toFixed(2) + '%';
+        const color = change > 0 ? 'green' : 'red';
+        const direction = change > 0 ? '&#9650;' : '&#9660;';
+        return `<span ${popoverAttributes}>${formattedValue} <span style="font-size: smaller; color: ${color};">${direction} ${formattedChange}</span></span>`;
+    }
+    return `<span ${popoverAttributes}>${formattedValue}</span>`;
+}
+
+function formatPercentage(value, change) {
+    const formattedValue = value.toFixed(2) + '%';
+    if (change !== null) {
+        const formattedChange = change.toFixed(2) + '%';
+        const color = change > 0 ? 'green' : 'red';
+        const direction = change > 0 ? '&#9650;' : '&#9660;';
+        return `${formattedValue} <span style="font-size: smaller; color: ${color};">${direction} ${formattedChange}</span>`;
+    }
+    return formattedValue;
 }
 
 function displayGraph(results) {

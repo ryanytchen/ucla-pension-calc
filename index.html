@@ -43,15 +43,15 @@
         <form id="pensionForm" class="mb-4">
             <div class="form-group">
                 <label for="currentAge">Current Age:</label>
-                <input type="number" id="currentAge" name="currentAge" class="form-control" required aria-label="Current Age">
+                <input type="number" id="currentAge" name="currentAge" class="form-control" required>
             </div>
             <div class="form-group">
                 <label for="startDateYear">Employment Start Year:</label>
-                <input type="number" id="startDateYear" name="startDateYear" class="form-control" required aria-label="Employment Start Year">
+                <input type="number" id="startDateYear" name="startDateYear" class="form-control" required>
             </div>
             <div id="startMonthContainer" class="form-group" style="display:none;">
                 <label for="startMonth">Employment Start Month:</label>
-                <select id="startMonth" name="startMonth" class="form-control" aria-label="Employment Start Month">
+                <select id="startMonth" name="startMonth" class="form-control">
                     <option value="">Select Month</option>
                     <option value="1">January</option>
                     <option value="2">February</option>
@@ -69,7 +69,7 @@
             </div>
             <div class="form-group">
                 <label for="hapc">Highest Average Salary (HAPC):</label>
-                <input type="number" step="0.01" id="hapc" name="hapc" class="form-control" required aria-label="Highest Average Salary">
+                <input type="number" step="0.01" id="hapc" name="hapc" class="form-control" required>
             </div>
             <button type="submit" class="btn btn-primary">Calculate</button>
             <button type="button" class="btn btn-secondary" id="clearButton">Clear</button>
@@ -81,6 +81,9 @@
         <p class="disclaimer mt-4">This calculator provides rough estimates. Please double-check the calculations when you are planning for retirement.</p>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="pension-calculator.js"></script>
 </body>
 </html>
