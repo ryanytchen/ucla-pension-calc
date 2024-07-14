@@ -61,6 +61,47 @@ function calculatePension() {
         };
     }
 
+    const lumpSumMultipliers = {
+        50: 206.34,
+        51: 206.34 + (200.77 - 206.34) * (51 - 50) / (52 - 50),
+        52: 200.77,
+        53: 201.11,
+        54: 201.11 + (195.07 - 201.11) * (54 - 53) / (55 - 53),
+        55: 195.07,
+        56: 195.07 + (182.76 - 195.07) * (56 - 55) / (60 - 55),
+        57: 195.07 + (182.76 - 195.07) * (57 - 55) / (60 - 55),
+        58: 195.07 + (182.76 - 195.07) * (58 - 55) / (60 - 55),
+        59: 195.07 + (182.76 - 195.07) * (59 - 55) / (60 - 55),
+        60: 182.76,
+        61: 182.76 + (172.12 - 182.76) * (61 - 60) / (63 - 60),
+        62: 182.76 + (172.12 - 182.76) * (62 - 60) / (63 - 60),
+        63: 172.12,
+        64: 172.12 + (168.64 - 172.12) * (64 - 63) / (65 - 63),
+        65: 165.04,
+        70: 145.24,
+        75: 122.85
+    };
+
+    // Linear interpolation for ages between known points
+    function interpolateMultiplier(age, age1, multiplier1, age2, multiplier2) {
+        return multiplier1 + (multiplier2 - multiplier1) * (age - age1) / (age2 - age1);
+    }
+
+    // Calculate multipliers for ages 66 to 69
+    for (let age = 66; age < 70; age++) {
+        lumpSumMultipliers[age] = interpolateMultiplier(age, 65, 165.04, 70, 145.24);
+    }
+
+    // Calculate multipliers for ages 71 to 74
+    for (let age = 71; age < 75; age++) {
+        lumpSumMultipliers[age] = interpolateMultiplier(age, 70, 145.24, 75, 122.85);
+    }
+
+    // Calculate multipliers for ages 76 to 100
+    for (let age = 76; age <= 100; age++) {
+        lumpSumMultipliers[age] = interpolateMultiplier(age, 75, 122.85, 100, 0);
+    }
+
     const results = [];
 
     for (let age = startAge; age <= 100; age++) {
@@ -72,7 +113,7 @@ function calculatePension() {
 
         if (yearlyPension <= hapc) {
             const monthlyPension = yearlyPension / 12;
-            const lumpSum = displayLumpSum ? monthlyPension * 182.76 : null;
+            const lumpSum = displayLumpSum ? monthlyPension * lumpSumMultipliers[age] : null;
 
             results.push({
                 retirementAge: age,
@@ -184,7 +225,8 @@ function displayGraph(results) {
             Monthly Pension: ${result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
             Yearly Pension: ${result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })}<br>
             Service Years: ${result.serviceYears}<br>
-            Benefit Percentage: ${result.benefitPercentage.toFixed(2)}%
+            Benefit Percentage: ${result.benefitPercentage.toFixed(2)}%<br>
+            Lump Sum Cashout: ${result.lumpSum ? result.lumpSum.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }) : 'N/A'}
         `),
         hoverinfo: 'text'
     };
