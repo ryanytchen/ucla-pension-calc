@@ -155,11 +155,11 @@ function calculatePension() {
         }
     }
 
-    displayResults(results, displayLumpSum, lumpSumMultipliers);
+    displayResults(results, displayLumpSum, lumpSumMultipliers, currentAge);
     displayGraph(results);
 }
 
-function displayResults(results, displayLumpSum, lumpSumMultipliers) {
+function displayResults(results, displayLumpSum, lumpSumMultipliers, currentAge) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
@@ -170,9 +170,9 @@ function displayResults(results, displayLumpSum, lumpSumMultipliers) {
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
 
-        const headers = ['Retirement Age', 'Retirement Year', 'Monthly Pension ($)', 'Yearly Pension ($)', 'Service Years', 'Benefit Percentage (%)'];
+        const headers = ['Retirement Age', 'Retirement Year', 'Service Years', 'Monthly Pension ($)', 'Yearly Pension ($)', 'Benefit Percentage (%)'];
         if (displayLumpSum) {
-            headers.splice(4, 0, 'Lump Sum Cashout ($)');
+            headers.splice(6, 0, 'Lump Sum Cashout ($)');
         }
 
         headers.forEach(header => {
@@ -187,42 +187,41 @@ function displayResults(results, displayLumpSum, lumpSumMultipliers) {
         const tbody = document.createElement('tbody');
 
         results.forEach((result, index) => {
-            const row = document.createElement('tr');
+            if (result.retirementAge >= currentAge) { // Only show rows for ages >= currentAge
+                const row = document.createElement('tr');
 
-            const formattedResult = {
-                retirementAge: result.retirementAge.toFixed(0),
-                retirementYear: result.retirementYear,
-                monthlyPension: formatPension(result.monthlyPension, result.monthlyPensionChange),
-                yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
-                serviceYears: result.serviceYears.toFixed(0),
-                benefitPercentage: formatPercentage(result.benefitPercentage, result.benefitPercentageChange)
-            };
+                const formattedResult = {
+                    retirementAge: result.retirementAge.toFixed(0),
+                    retirementYear: result.retirementYear,
+                    serviceYears: result.serviceYears.toFixed(0),
+                    monthlyPension: formatPension(result.monthlyPension, result.monthlyPensionChange),
+                    yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
+                    benefitPercentage: formatPercentage(result.benefitPercentage, result.benefitPercentageChange)
+                };
 
-            if (displayLumpSum) {
-                formattedResult.lumpSum = formatPension(result.lumpSum, result.lumpSumChange, result.monthlyPension, lumpSumMultipliers[result.retirementAge], index);
+                if (displayLumpSum) {
+                    formattedResult.lumpSum = formatPension(result.lumpSum, result.lumpSumChange, result.monthlyPension, lumpSumMultipliers[result.retirementAge], index);
+                }
+
+                const orderedValues = [
+                    formattedResult.retirementAge,
+                    formattedResult.retirementYear,
+                    formattedResult.serviceYears,
+                    formattedResult.monthlyPension,
+                    formattedResult.yearlyPension,
+                    formattedResult.benefitPercentage,
+                    formattedResult.lumpSum
+                    
+                ];
+
+                orderedValues.forEach(value => {
+                    const td = document.createElement('td');
+                    td.innerHTML = value;
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
             }
-
-            // Order the values as per the new requirement
-            const orderedValues = [
-                formattedResult.retirementAge,
-                formattedResult.retirementYear,
-                formattedResult.monthlyPension,
-                formattedResult.yearlyPension
-            ];
-            
-            if (displayLumpSum) {
-                orderedValues.push(formattedResult.lumpSum);
-            }
-
-            orderedValues.push(formattedResult.serviceYears, formattedResult.benefitPercentage);
-
-            orderedValues.forEach(value => {
-                const td = document.createElement('td');
-                td.innerHTML = value;
-                row.appendChild(td);
-            });
-
-            tbody.appendChild(row);
         });
 
         table.appendChild(tbody);
