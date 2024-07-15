@@ -103,6 +103,9 @@ function calculatePension() {
     }
 
     const results = [];
+    let previousMonthlyPension = null;
+    let previousLumpSum = null;
+    let previousBenefitPercentage = null;
 
     for (let age = startAge; age <= 100; age++) {
         const ageFactor = age <= 65 ? ageFactors[age] || 0.0250 : 0.0250;
@@ -115,25 +118,48 @@ function calculatePension() {
             const monthlyPension = yearlyPension / 12;
             const lumpSum = displayLumpSum ? monthlyPension * lumpSumMultipliers[age] : null;
 
+            let monthlyPensionChange = null;
+            let lumpSumChange = null;
+            let benefitPercentageChange = null;
+
+            if (previousMonthlyPension !== null) {
+                monthlyPensionChange = ((monthlyPension - previousMonthlyPension) / previousMonthlyPension) * 100;
+            }
+
+            if (previousLumpSum !== null && lumpSum !== null) {
+                lumpSumChange = ((lumpSum - previousLumpSum) / previousLumpSum) * 100;
+            }
+
+            if (previousBenefitPercentage !== null) {
+                benefitPercentageChange = ((benefitPercentage - previousBenefitPercentage) / previousBenefitPercentage) * 100;
+            }
+
             results.push({
                 retirementAge: age,
                 retirementYear: retirementYear,
                 monthlyPension: monthlyPension,
+                monthlyPensionChange: monthlyPensionChange,
                 yearlyPension: yearlyPension,
                 lumpSum: lumpSum,
+                lumpSumChange: lumpSumChange,
                 serviceYears: serviceYears,
-                benefitPercentage: benefitPercentage * 100
+                benefitPercentage: benefitPercentage * 100,
+                benefitPercentageChange: benefitPercentageChange
             });
+
+            previousMonthlyPension = monthlyPension;
+            previousLumpSum = lumpSum;
+            previousBenefitPercentage = benefitPercentage;
         } else {
             break;
         }
     }
 
-    displayResults(results, displayLumpSum);
+    displayResults(results, displayLumpSum, lumpSumMultipliers, currentAge);
     displayGraph(results);
 }
 
-function displayResults(results, displayLumpSum) {
+function displayResults(results, displayLumpSum, lumpSumMultipliers, currentAge) {
     const resultsDiv = document.getElementById('results');
     resultsDiv.innerHTML = '';
 
@@ -144,9 +170,9 @@ function displayResults(results, displayLumpSum) {
         const thead = document.createElement('thead');
         const headerRow = document.createElement('tr');
 
-        const headers = ['Retirement Age', 'Retirement Year', 'Monthly Pension ($)', 'Yearly Pension ($)', 'Service Years', 'Benefit Percentage (%)'];
+        const headers = ['Retirement Age', 'Retirement Year', 'Service Years', 'Monthly Pension ($)', 'Yearly Pension ($)', 'Benefit Percentage (%)'];
         if (displayLumpSum) {
-            headers.splice(4, 0, 'Lump Sum Cashout ($)');
+            headers.splice(6, 0, 'Lump Sum Cashout ($)');
         }
 
         headers.forEach(header => {
@@ -160,43 +186,42 @@ function displayResults(results, displayLumpSum) {
 
         const tbody = document.createElement('tbody');
 
-        results.forEach(result => {
-            const row = document.createElement('tr');
+        results.forEach((result, index) => {
+            if (result.retirementAge >= currentAge) { // Only show rows for ages >= currentAge
+                const row = document.createElement('tr');
 
-            const formattedResult = {
-                retirementAge: result.retirementAge.toFixed(0),
-                retirementYear: result.retirementYear,
-                monthlyPension: result.monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
-                yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
-                serviceYears: result.serviceYears.toFixed(0),
-                benefitPercentage: result.benefitPercentage.toFixed(2) + '%'
-            };
+                const formattedResult = {
+                    retirementAge: result.retirementAge.toFixed(0),
+                    retirementYear: result.retirementYear,
+                    serviceYears: result.serviceYears.toFixed(0),
+                    monthlyPension: formatPension(result.monthlyPension, result.monthlyPensionChange),
+                    yearlyPension: result.yearlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }),
+                    benefitPercentage: formatPercentage(result.benefitPercentage, result.benefitPercentageChange)
+                };
 
-            if (displayLumpSum) {
-                formattedResult.lumpSum = result.lumpSum.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+                if (displayLumpSum) {
+                    formattedResult.lumpSum = formatPension(result.lumpSum, result.lumpSumChange, result.monthlyPension, lumpSumMultipliers[result.retirementAge], index);
+                }
+
+                const orderedValues = [
+                    formattedResult.retirementAge,
+                    formattedResult.retirementYear,
+                    formattedResult.serviceYears,
+                    formattedResult.monthlyPension,
+                    formattedResult.yearlyPension,
+                    formattedResult.benefitPercentage,
+                    formattedResult.lumpSum
+                    
+                ];
+
+                orderedValues.forEach(value => {
+                    const td = document.createElement('td');
+                    td.innerHTML = value;
+                    row.appendChild(td);
+                });
+
+                tbody.appendChild(row);
             }
-
-            // Order the values as per the new requirement
-            const orderedValues = [
-                formattedResult.retirementAge,
-                formattedResult.retirementYear,
-                formattedResult.monthlyPension,
-                formattedResult.yearlyPension
-            ];
-            
-            if (displayLumpSum) {
-                orderedValues.push(formattedResult.lumpSum);
-            }
-
-            orderedValues.push(formattedResult.serviceYears, formattedResult.benefitPercentage);
-
-            orderedValues.forEach(value => {
-                const td = document.createElement('td');
-                td.textContent = value;
-                row.appendChild(td);
-            });
-
-            tbody.appendChild(row);
         });
 
         table.appendChild(tbody);
@@ -204,9 +229,36 @@ function displayResults(results, displayLumpSum) {
         document.getElementById('resultsHeader').classList.remove('d-none');
         resultsDiv.classList.remove('d-none');
         document.getElementById('pensionGraph').classList.remove('d-none');
+
+        // Initialize Bootstrap popovers
+        $('[data-toggle="popover"]').popover();
     } else {
         resultsDiv.textContent = 'No results to display.';
     }
+}
+
+function formatPension(value, change, monthlyPension = null, multiplier = null, index = null) {
+    const formattedValue = value.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+    const popoverContent = monthlyPension && multiplier ? `Calculation: ${monthlyPension.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })} x ${multiplier.toFixed(2)} = ${formattedValue}` : '';
+    const popoverAttributes = monthlyPension && multiplier ? `data-toggle="popover" data-trigger="hover" data-content="${popoverContent}"` : '';
+    if (change !== null) {
+        const formattedChange = change.toFixed(2) + '%';
+        const color = change > 0 ? 'green' : 'red';
+        const direction = change > 0 ? '&#9650;' : '&#9660;';
+        return `<span ${popoverAttributes}>${formattedValue} <span style="font-size: smaller; color: ${color};">${direction} ${formattedChange}</span></span>`;
+    }
+    return `<span ${popoverAttributes}>${formattedValue}</span>`;
+}
+
+function formatPercentage(value, change) {
+    const formattedValue = value.toFixed(2) + '%';
+    if (change !== null) {
+        const formattedChange = change.toFixed(2) + '%';
+        const color = change > 0 ? 'green' : 'red';
+        const direction = change > 0 ? '&#9650;' : '&#9660;';
+        return `${formattedValue} <span style="font-size: smaller; color: ${color};">${direction} ${formattedChange}</span>`;
+    }
+    return formattedValue;
 }
 
 function displayGraph(results) {
